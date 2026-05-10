@@ -7,17 +7,29 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import torch.nn as nn
+
+
+def _layer1_weight(model):
+    """Lấy weight matrix của Linear layer đầu tiên (input layer)."""
+    for m in model.net:
+        if isinstance(m, nn.Linear):
+            return m.weight.data.cpu().numpy()
+    raise RuntimeError("Không tìm thấy Linear layer trong model.")
 
 
 def render(dense_model, sparse_model, meta):
     """Render tab Phân tích Weights."""
     st.markdown("### 🔬 Phân tích Weight Heatmap")
 
+    dense_w  = _layer1_weight(dense_model)
+    sparse_w = _layer1_weight(sparse_model)
+
     col1, col2 = st.columns(2)
 
     for col, weights, title, model in [
-        (col1, meta['dense_w'], 'Dense MLP', dense_model),
-        (col2, meta['sparse_w'], f'Sparse MLP (λ={meta["best_lambda"]})', sparse_model),
+        (col1, dense_w,  'Dense MLP', dense_model),
+        (col2, sparse_w, f'Sparse MLP (λ={meta["best_lambda"]})', sparse_model),
     ]:
         with col:
             fig = px.imshow(
@@ -35,8 +47,8 @@ def render(dense_model, sparse_model, meta):
     col1, col2 = st.columns(2)
 
     for col, weights, title, color in [
-        (col1, meta['dense_w'], 'Dense MLP', '#ef4444'),
-        (col2, meta['sparse_w'], f'Sparse MLP (λ={meta["best_lambda"]})', '#10b981'),
+        (col1, dense_w,  'Dense MLP', '#ef4444'),
+        (col2, sparse_w, f'Sparse MLP (λ={meta["best_lambda"]})', '#10b981'),
     ]:
         with col:
             fig = go.Figure()

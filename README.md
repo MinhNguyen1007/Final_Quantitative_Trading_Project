@@ -7,7 +7,7 @@ Project nay trien khai bai toan du doan forward return 5 ngay cho thi truong VN3
 
 He thong gom 2 phan:
 
-- Notebook huan luyen va danh gia mo hinh: `test.ipynb`
+- Notebook chinh huan luyen va danh gia mo hinh: `sparse_alpha.ipynb` (`test.ipynb` la ban dau, deprecated)
 - Web app Streamlit de dashboard, prediction, backtest va phan tich weight: `webapp/`
 
 ## 1. Muc tieu bai toan
@@ -26,8 +26,9 @@ He thong gom 2 phan:
 
 ```text
 .
-|-- app.py                         # Ban web app monolithic (legacy)
-|-- test.ipynb                     # Notebook huan luyen + luu artifacts
+|-- sparse_alpha.ipynb             # Notebook chinh huan luyen + luu artifacts (23 cells, 8 sections)
+|-- experiments_compare.ipynb      # Sandbox so sanh 3h vs 4h vs TabNet
+|-- test.ipynb                     # Ban dau — tham khao, khong dung cho bao cao
 |-- dense_model.pth                # Model Dense da train
 |-- sparse_model.pth               # Model Sparse da train
 |-- model_metadata.pkl             # Scaler, feature cols, metrics, weights
@@ -66,9 +67,9 @@ Luu y:
 - Danh sach ma huan luyen trong code gom 30 ma VN30 (`VN30_SYMBOLS`).
 - File `VN30.csv` duoc luu trong data folder nhung khong nam trong danh sach train mac dinh.
 
-## 4. Pipeline huan luyen (test.ipynb)
+## 4. Pipeline huan luyen (sparse_alpha.ipynb)
 
-Notebook `test.ipynb` thuc hien day du pipeline:
+Notebook `sparse_alpha.ipynb` thuc hien day du pipeline:
 
 1. Load va gop du lieu tu cac file CSV.
 2. Chuan hoa cot thoi gian, sap xep theo `Symbol` va `TradingDate`.
@@ -86,19 +87,17 @@ Notebook `test.ipynb` thuc hien day du pipeline:
    - Test > 2022-06-30
 6. Scale feature bang `StandardScaler` (fit tren train).
 7. Train Dense MLP (baseline).
-8. Thu nghiem L1 lambda `[1e-5, 1e-4, 1e-3]`, chon `best_lambda` theo val MSE.
-9. Train Sparse MLP voi `best_lambda`.
+8. Train Sparse MLP voi L1 lambda = 1e-4 (da chot — lambda lon hon gay model "chet").
+9. Cross-validate interpretability bang Spearman rho giua Weight magnitude va SHAP.
 10. Danh gia tren test set va ve bieu do so sanh.
 11. Trich feature importance tu layer dau (tong `|weights|`).
 12. Luu artifacts:
     - `dense_model.pth`
     - `sparse_model.pth`
     - `model_metadata.pkl`
-    - `target_distribution.png`
-    - `model_comparison.png`
-    - `feature_importance.png`
-    - `weight_heatmap.png`
-    - `weight_distribution.png`
+    - `comparison.png`
+    - `feature_importance_weight.png`
+    - `feature_importance_shap.png`
 
 ## 5. Web App (Streamlit)
 
@@ -153,16 +152,9 @@ Neu can chay notebook huan luyen, cai them:
 pip install jupyter matplotlib seaborn
 ```
 
-### B3. Chinh duong dan data/model
+### B3. Chay web app
 
-Cap nhat cac duong dan tuy may ban trong file `webapp/config.py`:
-
-- `DATA_DIR`
-- `DENSE_MODEL_PATH`
-- `SPARSE_MODEL_PATH`
-- `METADATA_PATH`
-
-### B4. Chay web app
+Paths trong `webapp/config.py` da auto-detect tu vi tri file → khong can chinh tay.
 
 ```bash
 cd webapp
@@ -175,7 +167,7 @@ Mac dinh app mo o `http://localhost:8501`.
 
 De retrain va tao lai artifacts:
 
-1. Mo `test.ipynb`.
+1. Mo `sparse_alpha.ipynb`.
 2. Chay toan bo cell theo thu tu.
 3. Kiem tra da sinh ra cac file `.pth`, `.pkl`, `.png` o root project.
 4. Chay lai web app de su dung artifacts moi.

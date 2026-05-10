@@ -5,8 +5,8 @@ Chạy: streamlit run app.py
 """
 
 import streamlit as st
-from utils.model import load_models, load_metadata
-from components import dashboard, prediction, backtest, weights
+from utils.model import load_models, load_metadata, load_extended_metadata
+from components import dashboard, prediction, backtest, weights, interpretability
 
 # ============================================================
 # PAGE CONFIG
@@ -88,10 +88,11 @@ with st.sidebar:
 def init():
     meta = load_metadata()
     dense, sparse = load_models(meta['input_dim'])
-    return dense, sparse, meta
+    ext = load_extended_metadata()  # có thể là None nếu chưa chạy phần mở rộng
+    return dense, sparse, meta, ext
 
 try:
-    dense_model, sparse_model, meta = init()
+    dense_model, sparse_model, meta, ext_meta = init()
     loaded = True
 except Exception as e:
     loaded = False
@@ -111,11 +112,12 @@ st.markdown("""
 # TABS
 # ============================================================
 if loaded:
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Dashboard",
         "🔮 Dự đoán",
         "🧪 Backtest",
-        "🔬 Phân tích Weights"
+        "🔬 Phân tích Weights",
+        "🧠 Interpretability",
     ])
 
     with tab1:
@@ -129,3 +131,6 @@ if loaded:
 
     with tab4:
         weights.render(dense_model, sparse_model, meta)
+
+    with tab5:
+        interpretability.render(meta, ext_meta)
